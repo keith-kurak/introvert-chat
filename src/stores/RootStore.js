@@ -1,35 +1,55 @@
 import { types } from "mobx-state-tree";
 import { sortBy } from "lodash";
+import { v4 as uuidv4 } from 'uuid';
+import { DateTime } from 'luxon';
 import React from "react";
+
+const nowAsString = () => DateTime.now().toSQL();
+
+const sqlDateToJsDate = (sqlDate) => DateTime.fromSQL(sqlDate).toJSDate();
 
 // better structure: Prompt -> Thread -> Message
 // even better: Thread -> Message (thread is individual question at individual point in time, threads have tags that relate to each other)
 
 const Message = types.model("Message", {
-  id: types.identifierNumber,
+  id: types.identifier,
   text: types.string,
   sender: types.string, // "voice" or "user"
+  date: types.string,
+}).views(self => ({
+  get JsDate() {
+    return sqlDateToJsDate(self.date);
+  }
+}));
+
+const Prompt = types.model("Prompt", {
+  id: types.identifier,
+  shortName: types.string,
+  question: types.string,
+  category: types.string,
 });
 
 // create a type used by your RootStore
-const Threads = types.model("Thread", {
-  id: types.identifierNumber,
-  name: types.string,
+const Thread = types.model("Thread", {
+  id: types.identifier,
+  promptId: types.string,
   date: types.string, // string date
-  category: types.string,
-  //relatedCategories: types.optional(types.array(types.string), []), // maybe shouldn't be part of thread
   question: types.string,
   messages: types.optional(types.array(Message), []),
 }.views(self => ({
   get messagesSorted() {
     return sortBy(self.messages, (c) => c.id);
   },
+  get JsDate() {
+    return sqlDateToJsDate(self.date);
+  }
 }))).actions(self => ({
   addMessage(text, sender) {
     self.messages.push({
-      id: self.messages.length + 1,
+      id: uuidv4(),
       text,
       sender,
+      date: nowAsString(),
     });
   }
 }));
@@ -37,7 +57,8 @@ const Threads = types.model("Thread", {
 // create a RootStore that keeps all the state for the app
 const RootStore = types
   .model("RootStore", {
-    threads: types.optional(types.array(Threads), []),
+    threads: types.optional(types.array(Thread), []),
+    prompts: types.optional(types.array(Prompt), []),
     isLoggedIn: types.optional(types.boolean, true), // set to true for now since we don't really have login sessions yet
   })
   .views((self) => ({
@@ -48,9 +69,10 @@ const RootStore = types
   .actions((self) => {
     const addThread = ({ name, question }) => {
       self.threads.push({
-        id: self.threads.length,
+        id: uuidv4(),
         name,
         question,
+        date: nowAsString(),
       });
     };
 
@@ -73,13 +95,13 @@ const mockThreads = [
   {
     id: 0,
     name: "This Week",
-    question: "What was the best thing that happened this week?",
+    prompt: "What was the best thing that happened this week?",
     category: 'this_week1'
   },
   {
     id: 1,
     name: "Books",
-    question: "Have you read any good books lately?",
+    prompt: "Have you read any good books lately?",
     category: 'books1'
   }
 ]

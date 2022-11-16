@@ -28,9 +28,6 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "scheme": "introvertchat",
-    "overrides": {
-      "metro": "0.73.1"
-    }
+    "scheme": "introvertchat"
   }
 }
