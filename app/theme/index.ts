@@ -3,11 +3,11 @@ import { Platform } from 'react-native';
 type FontWeight = 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
 
 const colors = {
-  primary: '#FF0000',
-  secondary: '#00FF00',
+  primary: 'black',
+  secondary: 'gray',
   bg0: '#FFFFFF',
   bg1: '#EDEDED',
-  tint: 'blue',
+  tint: 'orange',
 }
 
 const sizes = {

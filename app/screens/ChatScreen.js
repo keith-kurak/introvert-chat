@@ -1,38 +1,63 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View } from 'react-native';
-import { GiftedChat } from 'react-native-gifted-chat';
+import React, { useState, useEffect, useCallback } from "react";
+import { View } from "react-native";
+import { GiftedChat } from "react-native-gifted-chat";
+import { observer } from "mobx-react-lite";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import HeaderIcon from "../components/HeaderIcon";
+import { useStore } from "../stores/RootStore";
 
-export default function ChatScreen() {
-  const [messages, setMessages] = useState([]);
+const VoiceToggleHeaderButton = observer(() => {
+  const { threadStore } = useStore();
+  const { setSender, sender } = threadStore;
+  return (
+    <HeaderIcon
+      name="chat-question-outline"
+      onPress={() => {
+        setSender(sender === "user" ? "voice" : "user");
+      }}
+      isSelectable
+      isSelected={sender === "voice"}
+    />
+  );
+});
 
-  useEffect(() => {
-    setMessages([
-      {
-        _id: 1,
-        text: 'Hello developer',
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: 'React Native',
-          avatar: 'https://placeimg.com/140/140/any',
-        },
+const ChatScreen = observer(() => {
+  const insets = useSafeAreaInsets();
+  const { threadStore } = useStore();
+  const { addMessage, sender, messagesSorted } = threadStore;
+
+  const messagesFinal = messagesSorted.map((message) => {
+    return {
+      _id: message.id,
+      text: message.text,
+      createdAt: message.jsDate,
+      user: {
+        _id: message.sender,
+        name: message.sender,
       },
-    ])
-  }, [])
+    };
+  });
 
-  const onSend = useCallback((messages = []) => {
-    setMessages(previousMessages => GiftedChat.append(previousMessages, messages))
-  }, [])
+  const onSend = useCallback(
+    (messages = []) => {
+      addMessage(messages[0].text);
+    },
+    [addMessage]
+  );
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'white'}}>
-    <GiftedChat
-      messages={messages}
-      onSend={messages => onSend(messages)}
-      user={{
-        _id: 1,
-      }}
-    />
+    <View style={{ flex: 1, backgroundColor: "white" }}>
+      <GiftedChat
+        messages={messagesFinal}
+        onSend={onSend}
+        user={{
+          _id: "user", //always keeps user messaes on the right
+        }}
+        placeholder={sender === "user" ? "Write a response..." : "Ask a question..."}
+        bottomOffset={insets.bottom}
+      />
     </View>
-  )
-}
+  );
+});
+
+export { ChatScreen, VoiceToggleHeaderButton };
