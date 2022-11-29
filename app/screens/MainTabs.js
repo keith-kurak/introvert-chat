@@ -23,7 +23,7 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <Tab.Navigator>
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Timeline" component={TimelineScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
