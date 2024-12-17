@@ -4,10 +4,12 @@ import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/
 import * as Crypto from "expo-crypto";
 import { sortBy } from "lodash";
 
+export type MessageTokenType = "heading" | "paragraph" | "listItem";
+
 interface Message {
   id: string;
   text: string;
-  isHeading: boolean;
+  tokenType: MessageTokenType;
   date: Date;
 }
 
@@ -22,8 +24,16 @@ interface Store {
   threads: Thread[];
   threadsSorted: Thread[];
   addThread: (title: string) => Thread;
-  addMessage: (threadId: string, text: string, isHeading: boolean) => void;
-  toggleHeading: (threadId: string, messageId: string) => void;
+  addMessage: (
+    threadId: string,
+    text: string,
+    tokenType?: MessageTokenType
+  ) => void;
+  setTokenType: (
+    threadId: string,
+    messageId: string,
+    tokenType: MessageTokenType
+  ) => void;
 }
 
 // Setup a configured persist options
@@ -45,7 +55,7 @@ export const store$ = observable<Store>({
     },
   }),
   threadsSorted: () =>
-    sortBy(store$.threads.get(), (t : Thread) => t.creationDate).reverse(),
+    sortBy(store$.threads.get(), (t: Thread) => t.creationDate).reverse(),
   addThread: (title: string) => {
     const thread: Thread = {
       id: nextId(),
@@ -56,7 +66,11 @@ export const store$ = observable<Store>({
     store$.threads.push(thread);
     return thread;
   },
-  addMessage: (threadId: string, text: string, isHeading: boolean) => {
+  addMessage: (
+    threadId: string,
+    text: string,
+    tokenType?: MessageTokenType
+  ) => {
     const thread = store$.threads.find((t) => t.id.get() === threadId);
     if (!thread) {
       return;
@@ -64,12 +78,16 @@ export const store$ = observable<Store>({
     const message: Message = {
       id: nextId(),
       text: text,
-      isHeading: isHeading,
+      tokenType: tokenType || "paragraph",
       date: new Date(),
     };
     thread.messages.push(message);
   },
-  toggleHeading: (threadId: string, messageId: string) => {
+  setTokenType: (
+    threadId: string,
+    messageId: string,
+    tokenType: MessageTokenType
+  ) => {
     const thread = store$.threads.find((t) => t.id.get() === threadId);
     if (!thread) {
       return;
@@ -78,6 +96,6 @@ export const store$ = observable<Store>({
     if (!message) {
       return;
     }
-    message.isHeading.set(prev => !prev);
+    message.tokenType.set(tokenType);
   },
 });

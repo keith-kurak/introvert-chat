@@ -6,11 +6,12 @@ import {
   Text,
   View,
   TextInput,
-  TouchableOpacity,
   Pressable,
+  Button,
 } from "react-native";
 import { Stack, Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { HeaderPressable } from "@/components/HeaderPressable";
 
 export default observer(() => {
   const [showInput, setShowInput] = useState(false);
@@ -26,18 +27,22 @@ export default observer(() => {
     }
   };
 
+  const onPressShowInput = () => {
+    setShowInput(true);
+  }
+
   return (
     <View className="flex-1 p-4">
       <Stack.Screen
         options={{
           title: "Threads",
           headerRight: () => (
-            <TouchableOpacity
+            <HeaderPressable
               className="p-2"
-              onPress={() => setShowInput(!showInput)}
+              onPress={onPressShowInput}
             >
               <Ionicons name="add-circle-outline" size={24} color="black" />
-            </TouchableOpacity>
+            </HeaderPressable>
           ),
         }}
       />
